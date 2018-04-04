@@ -30,7 +30,6 @@ struct Payment: Hashable {
     let quantity: Int
     let atomically: Bool
     let applicationUsername: String
-    let simulatesAskToBuyInSandbox: Bool
     let callback: (TransactionResult) -> Void
 
     var hashValue: Int {
@@ -73,7 +72,8 @@ class PaymentsController: TransactionController {
         let transactionState = transaction.transactionState
 
         if transactionState == .purchased {
-            let purchase = PurchaseDetails(productId: transactionProductIdentifier, quantity: transaction.payment.quantity, product: payment.product, transaction: transaction, originalTransaction: transaction.original, needsFinishTransaction: !payment.atomically)
+            
+            let purchase = PurchaseDetails(productId: transactionProductIdentifier, quantity: transaction.payment.quantity, product: payment.product, transaction: transaction, needsFinishTransaction: !payment.atomically)
             
             payment.callback(.purchased(purchase: purchase))
 

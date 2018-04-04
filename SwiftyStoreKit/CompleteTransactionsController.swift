@@ -27,9 +27,9 @@ import StoreKit
 
 struct CompleteTransactions {
     let atomically: Bool
-    let callback: ([Purchase]) -> Void
+    let callback: ([PurchaseWithApplicationUsername]) -> Void
 
-    init(atomically: Bool, callback: @escaping ([Purchase]) -> Void) {
+    init(atomically: Bool, callback: @escaping ([PurchaseWithApplicationUsername]) -> Void) {
         self.atomically = atomically
         self.callback = callback
     }
@@ -47,7 +47,7 @@ class CompleteTransactionsController: TransactionController {
         }
 
         var unhandledTransactions: [SKPaymentTransaction] = []
-        var purchases: [Purchase] = []
+        var purchases: [PurchaseWithApplicationUsername] = []
 
         for transaction in transactions {
 
@@ -55,13 +55,13 @@ class CompleteTransactionsController: TransactionController {
 
             if transactionState != .purchasing {
 
-                let willFinishTransaction = completeTransactions.atomically || transactionState == .failed
-                let purchase = Purchase(productId: transaction.payment.productIdentifier, quantity: transaction.payment.quantity, transaction: transaction, originalTransaction: transaction.original, needsFinishTransaction: !willFinishTransaction)
+                let purchase = PurchaseWithApplicationUsername(productId: transaction.payment.productIdentifier, quantity: transaction.payment.quantity, transaction: transaction, originalTransaction: transaction.original, needsFinishTransaction: !completeTransactions.atomically,applicationUsername:transaction.payment.applicationUsername ?? "")
 
                 purchases.append(purchase)
 
-                if willFinishTransaction {
-                    print("Finishing transaction for payment \"\(transaction.payment.productIdentifier)\" with state: \(transactionState.debugDescription)")
+                print("Finishing transaction for payment \"\(transaction.payment.productIdentifier)\" with state: \(transactionState.debugDescription)")
+
+                if completeTransactions.atomically {
                     paymentQueue.finishTransaction(transaction)
                 }
             } else {
